@@ -19,11 +19,14 @@ contract ClownToken {
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
-        require(balanceOf[msg.sender] >= _value, "Insufficient balance");
-        balanceOf[msg.sender] -= _value;
-        balanceOf[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
-        return true;
+        if (balanceOf[msg.sender] >= _value) {
+            balanceOf[msg.sender] -= _value;
+            balanceOf[_to] += _value;
+            emit Transfer(msg.sender, _to, _value);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function approve(address _spender, uint256 _value) public returns (bool success) {
@@ -33,11 +36,27 @@ contract ClownToken {
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        require(balanceOf[_from] >= _value && allowance[_from][msg.sender] >= _value, "Insufficient balance or allowance");
-        balanceOf[_from] -= _value;
-        balanceOf[_to] += _value;
-        allowance[_from][msg.sender] -= _value;
-        emit Transfer(_from, _to, _value);
+        if (balanceOf[_from] >= _value && allowance[_from][msg.sender] >= _value) {
+            balanceOf[_from] -= _value;
+            balanceOf[_to] += _value;
+            allowance[_from][msg.sender] -= _value;
+            emit Transfer(_from, _to, _value);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function getBalance() public view returns (uint256) {
+        return balanceOf[msg.sender];
+    }
+
+    function approveMultiple(address[] memory _spenders, uint256[] memory _values) public returns (bool success) {
+        require(_spenders.length == _values.length);
+        for (uint i = 0; i < _spenders.length; i++) {
+            allowance[msg.sender][_spenders[i]] = _values[i];
+            emit Approval(msg.sender, _spenders[i], _values[i]);
+        }
         return true;
     }
 }
